@@ -129,20 +129,21 @@ function initialize() {
     	content.innerHTML = d.content;
 
     	// add image, otherwise remove image tag and set links
-    	if (content.getElementsByTagName('img').length > 0) {
-    		post.getElementsByTagName('img')[1].setAttribute('src', content.getElementsByTagName('img')[0].getAttribute('src'));
-    		links[0].setAttribute('href', d.link);
-	    	links[2].setAttribute('href', d.link);
-	    	links[3].setAttribute('href', d.link);
-    	} 
-    	else {
+    	// if (content.getElementsByTagName('img').length > 0) {
+    	// 	post.getElementsByTagName('img')[1].setAttribute('src', content.getElementsByTagName('img')[0].getAttribute('src'));
+    	// 	links[0].setAttribute('href', d.link);
+	    // 	links[2].setAttribute('href', d.link);
+	    // 	links[3].setAttribute('href', d.link);
+    	// } 
+    	// else {
     		post.removeChild(post.getElementsByClassName('featured')[0]);
     		links[1].setAttribute('href', d.link);
 	    	links[2].setAttribute('href', d.link);
-    	}
+    	// }
+
 
     	// add up to the last five posts as sidebar posts
-    	if (length <= 5) {
+    	if (length <= 5 && $('#main').length - 1 >= 5) {
     		var miniTemplate = '<header><h3></h3><time class="published" datetime="2015-10-20"></time>' +
 						'<a href="http://medium.com/@alphyblog" class="author"><img src="images/avatar.jpg" alt="" /></a>' +
 						'</header><a href="#" class="image"><img src="" alt="" /></a>';

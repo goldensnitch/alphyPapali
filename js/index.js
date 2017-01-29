@@ -1,5 +1,6 @@
 var tl;
 var flag = false;
+var feedUrl = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20html%20where%20url%3D%27https%3A%2F%2Fmedium.com%2Ffeed%2F%40alphyblog%27&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 
 /*
 * Checks to see if done loading posts, if so fade in, if not keep looping.
@@ -97,49 +98,49 @@ function initialize() {
 		'<a href="#" class="image featured"><img src="images/pic01.jpg" alt="" /></a><p></p><footer><ul class="actions">' +
 		'<li><a href="#" class="button big">Continue Reading</a></li></ul></footer>';
 
-  var feed = new google.feeds.Feed("http://medium.com/feed/@alphyblog");
-  feed.setNumEntries(11);
+  $.get(feedUrl, function(result, status) {
+  	var feedJson = result.query.results.body.rss;
+    var length = feedJson.channel.item.length;
 
-  feed.load(function(result) {
-  	console.log(result);
+    console.log(feedJson);
+    feedJson.channel.item.forEach(function(d) {
 
-  	var length = result.feed.entries.length;
-    result.feed.entries.forEach(function(d) {
-
+        var contentJson = d.description.p.splice(-2);
+        console.log(contentJson);
     	// create post
     	var post = document.createElement('article');
     	post.setAttribute('class', 'post');
 
     	// add template
     	post.innerHTML = template;
-    	post.getElementsByClassName('title')[0].getElementsByTagName('a')[0].innerHTML = d.title;
+
+        var title = contentJson[1].a.href.split('/').pop().split('?')[0].split('-');
+        title = title.slice(0, title.length - 1).join(' ');
+
+    	post.getElementsByClassName('title')[0].getElementsByTagName('a')[0].innerHTML = title;
 
     	// set date
-    	var date = new Date(d.publishedDate);
+    	var date = new Date(d.pubdate);
     	var postDate = post.getElementsByTagName('time')[0];
     	postDate.setAttribute('datetime', date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate());
     	postDate.innerHTML = date.toDateString();
 
     	// set snippet, or leave blank if empty
-    	post.getElementsByTagName('p')[1].innerHTML = (d.contentSnippet === 'Continue reading on Medium »') ? '' : d.contentSnippet;
+        var snippet = contentJson[1].a.content;
+    	post.getElementsByTagName('p')[1].innerHTML = contentJson[0].content;
 
     	// get content from feed to parse
     	var content = document.createElement('div');
     	var links = post.getElementsByTagName('a');
-    	content.innerHTML = d.content;
+        console.log(contentJson[0].content);
+    	content.innerHTML = contentJson[0].content;
 
-    	// add image, otherwise remove image tag and set links
-    	// if (content.getElementsByTagName('img').length > 0) {
-    	// 	post.getElementsByTagName('img')[1].setAttribute('src', content.getElementsByTagName('img')[0].getAttribute('src'));
-    	// 	links[0].setAttribute('href', d.link);
-	    // 	links[2].setAttribute('href', d.link);
-	    // 	links[3].setAttribute('href', d.link);
-    	// } 
-    	// else {
-    		post.removeChild(post.getElementsByClassName('featured')[0]);
-    		links[1].setAttribute('href', d.link);
-	    	links[2].setAttribute('href', d.link);
-    	// }
+        var link = contentJson[1].a.href;
+
+    	post.removeChild(post.getElementsByClassName('featured')[0]);
+    	links[1].setAttribute('href', link);
+	    links[2].setAttribute('href', link);
+
 
 
     	// add up to the last five posts as sidebar posts
@@ -151,7 +152,7 @@ function initialize() {
 			var miniPost = document.createElement('article');
 			miniPost.setAttribute('class', 'mini-post');
 			miniPost.innerHTML = miniTemplate;
-			miniPost.getElementsByTagName('h3')[0].innerHTML = '<a href="' + d.link + '">' + d.title + '</a>';
+			miniPost.getElementsByTagName('h3')[0].innerHTML = '<a href="' + link + '">' + title + '</a>';
 			miniPost.getElementsByTagName('time')[0].setAttribute('datetime', date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate());
 			miniPost.getElementsByTagName('time')[0].innerHTML = date.toDateString();
 
@@ -159,7 +160,7 @@ function initialize() {
 			
 			if (content.getElementsByTagName('img').length > 0) {
 				miniPost.getElementsByTagName('img')[1].setAttribute('src', content.getElementsByTagName('img')[0].getAttribute('src'));
-	    		links[2].setAttribute('href', d.link);
+	    		links[2].setAttribute('href', link);
 	    	}
 	    	else {
 	    		miniPost.removeChild(miniPost.getElementsByTagName('a')[2]);
@@ -188,7 +189,7 @@ function initialize() {
 // start loading animation
 loading();
 
-google.load("feeds", "1", {callback : initialize});
+initialize();
 
 
 

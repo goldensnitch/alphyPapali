@@ -1,6 +1,6 @@
 var tl;
 var flag = false;
-var feedUrl = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20html%20where%20url%3D%27https%3A%2F%2Fmedium.com%2Ffeed%2F%40alphyblog%27&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
+var feedUrl = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%20%3D%20'https%3A%2F%2Fmedium.com%2Ffeed%2F%40alphyblog'&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 
 /*
 * Checks to see if done loading posts, if so fade in, if not keep looping.
@@ -95,18 +95,16 @@ function initialize() {
 
   var template = '<header><div class="title"><h2><a href="#"></a></h2><p></p></div><div class="meta"><time class="published" datetime="2015-11-01"></time>' +
 		'<a href="http://medium.com/@alphyblog" class="author"><span class="name">Alphy Papali</span><img src="images/avatar.jpg" alt="" /></a></div></header>' +
-		'<a href="#" class="image featured"><img src="images/pic01.jpg" alt="" /></a><p></p><footer><ul class="actions">' +
+		'<a href="#" class="image featured"><img src="images/pic01.jpg" alt="" /></a><p style="overflow: hidden; text-overflow: ellipsis; max-height: 18.5em; line-height: 1.8em;"></p><footer><ul class="actions">' +
 		'<li><a href="#" class="button big">Continue Reading</a></li></ul></footer>';
 
   $.get(feedUrl, function(result, status) {
-  	var feedJson = result.query.results.body.rss;
+  	var feedJson = result.query.results.rss;
     var length = feedJson.channel.item.length;
 
     console.log(feedJson);
     feedJson.channel.item.forEach(function(d) {
 
-        var contentJson = d.description.p.splice(-2);
-        console.log(contentJson);
     	// create post
     	var post = document.createElement('article');
     	post.setAttribute('class', 'post');
@@ -114,32 +112,30 @@ function initialize() {
     	// add template
     	post.innerHTML = template;
 
-        var title = contentJson[1].a.href.split('/').pop().split('?')[0].split('-');
-        title = title.slice(0, title.length - 1).join(' ');
-
+        // set title
+        var title = d.title;
     	post.getElementsByClassName('title')[0].getElementsByTagName('a')[0].innerHTML = title;
 
     	// set date
-    	var date = new Date(d.pubdate);
+    	var date = new Date(d.updated);
     	var postDate = post.getElementsByTagName('time')[0];
     	postDate.setAttribute('datetime', date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate());
     	postDate.innerHTML = date.toDateString();
 
     	// set snippet, or leave blank if empty
-        var snippet = contentJson[1].a.content;
-    	post.getElementsByTagName('p')[1].innerHTML = contentJson[0].content;
+    	post.getElementsByTagName('p')[1].innerHTML = d.encoded.split('<img')[0];
 
     	// get content from feed to parse
     	var content = document.createElement('div');
     	var links = post.getElementsByTagName('a');
-        console.log(contentJson[0].content);
-    	content.innerHTML = contentJson[0].content;
+    	content.innerHTML = d.encoded;
 
-        var link = contentJson[1].a.href;
+        // set link
+        var link = d.link;
 
     	post.removeChild(post.getElementsByClassName('featured')[0]);
-    	links[1].setAttribute('href', link);
-	    links[2].setAttribute('href', link);
+    	links[0].setAttribute('href', link);
+	    links[links.length - 1].setAttribute('href', link);
 
 
 
